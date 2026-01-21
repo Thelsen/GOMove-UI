@@ -166,10 +166,15 @@ GameObject * GOMove::MoveGameObject(Player* player, float x, float y, float z, f
     if (!MapManager::IsValidMapCoord(object->GetMapId(), x, y, z))
         return nullptr;
 
+    // Get current rotation to preserve pitch and roll
+    QuaternionData rot = object->GetLocalRotation();
+    float currentO, currentPitch, currentRoll;
+    rot.toEulerAnglesZYX(currentO, currentPitch, currentRoll);
+
     // copy paste .gob move command
     // copy paste .gob turn command
     object->Relocate(x, y, z, o);
-    object->SetLocalRotationAngles(o, 0, 0);
+    object->SetLocalRotationAngles(o, currentPitch, currentRoll);
     object->SaveToDB();
 
     // Generate a completely new spawn with new guid

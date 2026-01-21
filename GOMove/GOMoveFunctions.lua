@@ -176,16 +176,24 @@ function GOMove:CreateSlider(Frame, name, width, Ox, Oy, minVal, maxVal, default
     Slider.ValueText:SetPoint("TOP", Slider, "BOTTOM", 0, 0)
     Slider.ValueText:SetText(defaultVal or 0)
     
-    -- Track if we're dragging
+    -- Track if we're dragging or silently updating
     Slider.isDragging = false
+    Slider.isSilentUpdate = false
+    
+    -- Set value without triggering the callback
+    function Slider:SetValueSilent(value)
+        self.isSilentUpdate = true
+        self:SetValue(value)
+        self.isSilentUpdate = false
+    end
     
     -- Update display on value change, but only execute callback on mouse up
     Slider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value + 0.5)
         self:SetValue(value) -- Snap to integer
         self.ValueText:SetText(value)
-        -- Only fire callback if not dragging (i.e., on mouse up or mouse wheel)
-        if not self.isDragging and self.OnValueChanged then
+        -- Only fire callback if not dragging and not a silent update
+        if not self.isDragging and not self.isSilentUpdate and self.OnValueChanged then
             self:OnValueChanged(value)
         end
     end)

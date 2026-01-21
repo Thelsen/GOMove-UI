@@ -57,6 +57,7 @@ end
 local FavFrame = GOMove:CreateFrame("Favourite_List", 200, 280, GOMove.FavL, true)
 FavFrame:Position("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, 0)
 function FavFrame:ButtonOnClick(ID)
+    GOMove.IsSpawning = true
     GOMove:Move("SPAWN", self.DataTable[FauxScrollFrame_GetOffset(self.ScrollBar) + ID][2])
 end
 function FavFrame:MiscOnClick(ID)
@@ -150,6 +151,7 @@ for i = 1, SelFrame.ButtonCount do
     SpawnButton:SetHighlightTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
     SpawnButton:SetPoint("TOPRIGHT", DeleteButton, "TOPLEFT", 0, 0)
     SpawnButton:SetScript("OnClick", function()
+        GOMove.IsSpawning = true
         GOMove:Move("RESPAWN", SelFrame.DataTable[FauxScrollFrame_GetOffset(SelFrame.ScrollBar) + i][2])
     end)
     local InfoButton = CreateFrame("Button", Button:GetName().."_Info", SpawnButton)
@@ -261,6 +263,7 @@ yPos = yPos - 15
 
 -- Pitch/Roll sliders
 local PITCHSLIDER = GOMove:CreateSlider(MainFrame, "Pitch", 150, 0, yPos, -180, 180, 0)
+GOMove.PITCHSLIDER = PITCHSLIDER
 function PITCHSLIDER:OnValueChanged(value)
     local radians = math.floor(value * math.pi / 180 * 100 + 0.5)
     GOMove:Move("SETPITCH", radians + 18000)
@@ -268,6 +271,7 @@ end
 yPos = yPos - 40
 
 local ROLLSLIDER = GOMove:CreateSlider(MainFrame, "Roll", 150, 0, yPos, -180, 180, 0)
+GOMove.ROLLSLIDER = ROLLSLIDER
 function ROLLSLIDER:OnValueChanged(value)
     local radians = math.floor(value * math.pi / 180 * 100 + 0.5)
     GOMove:Move("SETROLL", radians + 18000)
@@ -276,11 +280,20 @@ yPos = yPos - 40
 
 -- Turn/Orientation slider
 local TURNSLIDER = GOMove:CreateSlider(MainFrame, "Turn", 150, 0, yPos, -180, 180, 0)
+GOMove.TURNSLIDER = TURNSLIDER
 function TURNSLIDER:OnValueChanged(value)
     local radians = math.floor(value * math.pi / 180 * 100 + 0.5)
     GOMove:Move("SETTURN", radians + 18000)
 end
 yPos = yPos - 40
+
+-- Helper function to reset all rotation sliders without triggering callbacks
+function GOMove:ResetRotationSliders()
+    if self.PITCHSLIDER then self.PITCHSLIDER:SetValueSilent(0) end
+    if self.ROLLSLIDER then self.ROLLSLIDER:SetValueSilent(0) end
+    if self.TURNSLIDER then self.TURNSLIDER:SetValueSilent(0) end
+end
+
 CreateSeparator(MainFrame, yPos)
 yPos = yPos - 8
 
@@ -313,7 +326,10 @@ function GOTO:OnClick() GOMove:Move("GOTO") end
 yPos = yPos - 26
 
 local RESPAWN = GOMove:CreateButton(MainFrame, "Respawn", 70, 22, -40, yPos)
-function RESPAWN:OnClick() GOMove:Move("RESPAWN") end
+function RESPAWN:OnClick()
+    GOMove.IsSpawning = true
+    GOMove:Move("RESPAWN")
+end
 
 local INFO = GOMove:CreateButton(MainFrame, "Info", 70, 22, 40, yPos)
 function INFO:OnClick() GOMove:Move("INFO") end
@@ -330,7 +346,10 @@ yPos = yPos - 10
 
 local ENTRY = GOMove:CreateInput(MainFrame, "ENTRY", 70, 22, -25, yPos, 10)
 local SPAWN = GOMove:CreateButton(MainFrame, "Spawn", 55, 22, 50, yPos)
-function SPAWN:OnClick() GOMove:Move("SPAWN", ENTRY:GetNumber()) end
+function SPAWN:OnClick()
+    GOMove.IsSpawning = true
+    GOMove:Move("SPAWN", ENTRY:GetNumber())
+end
 
 yPos = yPos - 28
 
@@ -452,6 +471,15 @@ EventFrame:SetScript("OnEvent",
                     GOMove:Update()
                 elseif(ID == "ADD") then
                     local guid = ENTRYORGUID
+                    -- If spawning, clear all existing selections first
+                    if GOMove.IsSpawning then
+                        for k,v in pairs(GOMove.Selected) do
+                            if(tonumber(k)) then
+                                GOMove.Selected:Del(k)
+                            end
+                        end
+                        GOMove.IsSpawning = false
+                    end
                     GOMove.Selected:Add(ARG2, guid)
                     local exists = false
                     for k, tbl in ipairs(GOMove.SelL) do
@@ -463,6 +491,8 @@ EventFrame:SetScript("OnEvent",
                     if(not exists) then
                         GOMove.SelL:Add(ARG2, guid, ARG3)
                     end
+                    -- Reset sliders to 0 when selecting a gameobject
+                    GOMove:ResetRotationSliders()
                     GOMove:Update()
                 elseif(ID == "SWAP") then
                     local oldGUID, newGUID = ENTRYORGUID, ARG3
