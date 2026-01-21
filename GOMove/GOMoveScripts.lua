@@ -301,13 +301,16 @@ function TURNSLIDER:OnValueChanged(value)
 end
 yPos = yPos - 40
 
--- Helper function to reset all rotation and scale sliders without triggering callbacks
-function GOMove:ResetRotationSliders()
+-- Helper function to reset all sliders (rotation and scale) without triggering callbacks
+function GOMove:ResetAllSliders()
     if self.PITCHSLIDER then self.PITCHSLIDER:SetValueSilent(0) end
     if self.ROLLSLIDER then self.ROLLSLIDER:SetValueSilent(0) end
     if self.TURNSLIDER then self.TURNSLIDER:SetValueSilent(0) end
     if self.SCALESLIDER then self.SCALESLIDER:SetValueSilent(100) end
 end
+
+-- Keep old function name for backwards compatibility
+GOMove.ResetRotationSliders = GOMove.ResetAllSliders
 
 CreateSeparator(MainFrame, yPos)
 yPos = yPos - 8
