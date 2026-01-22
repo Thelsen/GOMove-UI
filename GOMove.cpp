@@ -177,8 +177,11 @@ GameObject * GOMove::MoveGameObject(Player* player, float x, float y, float z, f
     // If orientation is intentionally changing, calculate the delta and apply it.
     float orientationToUse;
     float orientationDelta = o - object->GetOrientation();
-    const float epsilon = 0.0001f;
-    if (fabs(orientationDelta) < epsilon)
+    // Tolerance for floating-point comparison of radians. This value is small enough
+    // to detect intentional orientation changes (minimum step is 0.01 radians from UI)
+    // but large enough to handle typical float precision errors (~1e-6 to 1e-7).
+    const float ORIENTATION_EPSILON = 0.0001f;
+    if (fabs(orientationDelta) < ORIENTATION_EPSILON)
     {
         // Position-only move: preserve exact quaternion orientation
         orientationToUse = currentO;
