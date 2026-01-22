@@ -171,10 +171,28 @@ GameObject * GOMove::MoveGameObject(Player* player, float x, float y, float z, f
     float currentO, currentPitch, currentRoll;
     rot.toEulerAnglesZYX(currentO, currentPitch, currentRoll);
 
+    // Determine the orientation to use: if the passed orientation is close to the
+    // quaternion's orientation (position-only move), use the quaternion's value to
+    // avoid floating point discrepancies that can invert pitch/roll.
+    // If orientation is intentionally changing, calculate the delta and apply it.
+    float orientationToUse;
+    float orientationDelta = o - object->GetOrientation();
+    const float epsilon = 0.0001f;
+    if (fabs(orientationDelta) < epsilon)
+    {
+        // Position-only move: preserve exact quaternion orientation
+        orientationToUse = currentO;
+    }
+    else
+    {
+        // Orientation change: apply the delta to the quaternion's orientation
+        orientationToUse = currentO + orientationDelta;
+    }
+
     // copy paste .gob move command
     // copy paste .gob turn command
-    object->Relocate(x, y, z, o);
-    object->SetLocalRotationAngles(o, currentPitch, currentRoll);
+    object->Relocate(x, y, z, orientationToUse);
+    object->SetLocalRotationAngles(orientationToUse, currentPitch, currentRoll);
     object->SaveToDB();
 
     // Generate a completely new spawn with new guid
