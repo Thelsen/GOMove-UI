@@ -48,7 +48,6 @@ public:
     static GameObject* SpawnGameObject(Player* player, float x, float y, float z, float o, uint32 p, uint32 entry);
     static GameObject* MoveGameObject(Player* player, float x, float y, float z, float o, uint32 p, ObjectGuid::LowType guidLow);
     static GameObject* RotateGameObject(Player* player, float o, float pitch, float roll, ObjectGuid::LowType lowguid);
-    static GameObject* ScaleGameObject(Player* player, float scale, ObjectGuid::LowType lowguid);
     static std::list<GameObject*> GetNearbyGameObjects(Player* player, float range);
 
     static void SendInfo(Player* player, ObjectGuid::LowType lowguid);
