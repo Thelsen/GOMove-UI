@@ -73,10 +73,6 @@ public:
         SETPITCH,
         SETROLL,
         SETTURN,
-        SETSCALE,
-        SCALEUP,
-        SCALEDOWN,
-        GRIDSNAP,
     };
 
     ChatCommandTable GetCommands() const override
@@ -248,53 +244,6 @@ public:
                     case SETPITCH: GOMove::RotateGameObject(player, currentO, ((float)ARG - 18000.0f) / 100.0f, currentRoll, lowguid); break;
                     case SETROLL: GOMove::RotateGameObject(player, currentO, currentPitch, ((float)ARG - 18000.0f) / 100.0f, lowguid); break;
                     case SETTURN: GOMove::RotateGameObject(player, ((float)ARG - 18000.0f) / 100.0f, currentPitch, currentRoll, lowguid); break;
-                    }
-                }
-            }
-            else if (ID >= SETSCALE && ID <= GRIDSNAP) // Scale commands
-            {
-                GameObject* target = GOMove::GetGameObject(player, lowguid);
-                if (!target)
-                    ChatHandler(player->GetSession()).PSendSysMessage("Object GUID: %u not found", lowguid);
-                else
-                {
-                    switch (ID)
-                    {
-                    case SETSCALE:
-                    {
-                        // ARG is scale percentage (100 = 1.0, 50 = 0.5, 200 = 2.0)
-                        float scale = static_cast<float>(ARG) / 100.0f;
-                        if (scale < 0.1f) scale = 0.1f;
-                        if (scale > 5.0f) scale = 5.0f;
-                        GOMove::ScaleGameObject(player, scale, lowguid);
-                    } break;
-                    case SCALEUP:
-                    {
-                        float currentScale = target->GetObjectScale();
-                        float newScale = currentScale + (static_cast<float>(ARG) / 100.0f);
-                        if (newScale > 5.0f) newScale = 5.0f;
-                        GOMove::ScaleGameObject(player, newScale, lowguid);
-                    } break;
-                    case SCALEDOWN:
-                    {
-                        float currentScale = target->GetObjectScale();
-                        float newScale = currentScale - (static_cast<float>(ARG) / 100.0f);
-                        if (newScale < 0.1f) newScale = 0.1f;
-                        GOMove::ScaleGameObject(player, newScale, lowguid);
-                    } break;
-                    case GRIDSNAP:
-                    {
-                        // Snap object position to grid
-                        float x, y, z, o;
-                        target->GetPosition(x, y, z, o);
-                        uint32 p = target->GetPhaseMask();
-                        float gridSize = static_cast<float>(ARG) / 100.0f;
-                        if (gridSize < 0.1f) gridSize = 1.0f;
-                        x = round(x / gridSize) * gridSize;
-                        y = round(y / gridSize) * gridSize;
-                        z = round(z / gridSize) * gridSize;
-                        GOMove::MoveGameObject(player, x, y, z, o, p, lowguid);
-                    } break;
                     }
                 }
             }

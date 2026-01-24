@@ -1,4 +1,4 @@
-GOMove = {Frames = {}, Inputs = {}, UndoStack = {}, MaxUndoEntries = 20, ClipboardEntry = nil, ClipboardName = nil, GridSnapEnabled = false, GridSnapSize = 1}
+GOMove = {Frames = {}, Inputs = {}}
 
 function GOMove:Update()
     for k, Frame in ipairs(GOMove.Frames) do
@@ -6,91 +6,6 @@ function GOMove:Update()
             Frame:Update()
         end
     end
-end
-
--- ============================================================================
--- Undo System
--- ============================================================================
-function GOMove:PushUndo(action, guid, entry, name)
-    local undoEntry = {
-        action = action,
-        guid = guid,
-        entry = entry,
-        name = name,
-        timestamp = time()
-    }
-    table.insert(self.UndoStack, 1, undoEntry)
-    -- Limit stack size
-    while #self.UndoStack > self.MaxUndoEntries do
-        table.remove(self.UndoStack)
-    end
-end
-
-function GOMove:PopUndo()
-    if #self.UndoStack > 0 then
-        return table.remove(self.UndoStack, 1)
-    end
-    return nil
-end
-
-function GOMove:ClearUndo()
-    self.UndoStack = {}
-end
-
--- ============================================================================
--- Clipboard System
--- ============================================================================
-function GOMove:CopyToClipboard(entry, name)
-    self.ClipboardEntry = entry
-    self.ClipboardName = name
-    print("|cFF00FF00[GOMove]|r Copied: " .. (name or "Unknown") .. " (Entry: " .. entry .. ")")
-end
-
-function GOMove:PasteFromClipboard()
-    if self.ClipboardEntry then
-        self.IsSpawning = true
-        self:Move("SPAWN", self.ClipboardEntry)
-        return true
-    else
-        UIErrorsFrame:AddMessage("Clipboard is empty", 1.0, 0.0, 0.0, 53, 2)
-        return false
-    end
-end
-
--- ============================================================================
--- Grid Snap System
--- ============================================================================
-function GOMove:ToggleGridSnap()
-    self.GridSnapEnabled = not self.GridSnapEnabled
-    if self.GridSnapEnabled then
-        print("|cFF00FF00[GOMove]|r Grid snap enabled (size: " .. self.GridSnapSize .. ")")
-    else
-        print("|cFF00FF00[GOMove]|r Grid snap disabled")
-    end
-end
-
-function GOMove:SetGridSize(size)
-    if size > 0 then
-        self.GridSnapSize = size
-        print("|cFF00FF00[GOMove]|r Grid size set to: " .. size)
-    end
-end
-
--- ============================================================================
--- Tooltip Helper
--- ============================================================================
-function GOMove:SetupTooltip(frame, title, text)
-    frame:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:AddLine(title, 1, 0.82, 0)
-        if text then
-            GameTooltip:AddLine(text, 1, 1, 1, true)
-        end
-        GameTooltip:Show()
-    end)
-    frame:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
 end
 
 function GOMove:CreateFrame(name, width, height, DataTable, both)
@@ -353,10 +268,6 @@ TID("ROLLLEFT"          ,   true    ,   false   )
 TID("SETPITCH"          ,   true    ,   false   )
 TID("SETROLL"           ,   true    ,   false   )
 TID("SETTURN"           ,   true    ,   false   )
-TID("SETSCALE"          ,   true    ,   false   )
-TID("SCALEUP"           ,   true    ,   false   )
-TID("SCALEDOWN"         ,   true    ,   false   )
-TID("GRIDSNAP"          ,   true    ,   false   )
 --TID("COPYSEL"         ,   false   ,   false   )
 --TID("COPY"            ,   false   ,   false   )
 --TID("BIG"             ,   false   ,   false   )
